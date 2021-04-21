@@ -1,4 +1,4 @@
-module gobackpack/jwt
+module github.com/gobackpack/jwt
 
 go 1.16
 
