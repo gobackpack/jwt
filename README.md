@@ -9,7 +9,7 @@ token := &jwtLib.Token{
 tokenStr, err := token.Generate(map[string]interface{}{
     "id":    "semir-123",
     "email": "semir@mail.com",
-    "exp":   time.Second * 15,
+    "exp":   time.Now().Add(time.Second * 15).Unix(),
 })
 if err != nil {
     log.Fatalln("failed to generate jwt: ", err)

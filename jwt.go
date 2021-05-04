@@ -3,6 +3,7 @@ package jwt
 import (
 	"errors"
 	jwtLib "github.com/dgrijalva/jwt-go"
+	"time"
 )
 
 var ErrMissingSecret = errors.New("missing secret key")
@@ -50,6 +51,10 @@ func (token *Token) ValidateAndExtract(tokenStr string) (map[string]interface{},
 	}
 
 	return nil, false
+}
+
+func TokenExpiry(duration time.Duration) int64 {
+	return time.Now().Add(duration).Unix()
 }
 
 func (token *Token) parse(tokenStr string) (*jwtLib.Token, error) {

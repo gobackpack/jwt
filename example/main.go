@@ -14,7 +14,7 @@ func main() {
 	tokenStr, err := token.Generate(map[string]interface{}{
 		"id":    "semir-123",
 		"email": "semir@mail.com",
-		"exp":   time.Second * 15,
+		"exp":   jwtLib.TokenExpiry(time.Second * 15),
 	})
 	if err != nil {
 		log.Fatalln("failed to generate jwt: ", err)
