@@ -8,25 +8,23 @@ import (
 
 func main() {
 	token := &jwtLib.Token{
-		Secret: []byte("testkey"), // if we change this during validation, token will be invalid!
+		Secret: []byte("testkey"),
 	}
 
-	if err := token.Generate(&jwtLib.Claims{
-		Expiration: time.Second * 30,
-		Fields: map[string]interface{}{
-			"username": "semir",
-			"email":    "semir@mail.com",
-			"id":       "semir-123",
-		},
-	}); err != nil {
+	tokenStr, err := token.Generate(map[string]interface{}{
+		"id":    "semir-123",
+		"email": "semir@mail.com",
+		"exp":   time.Second * 15,
+	})
+	if err != nil {
 		log.Fatalln("failed to generate jwt: ", err)
 	}
 
-	log.Print(token.Content)
+	log.Print(tokenStr)
 
-	claims, valid := token.ValidateAndExtract(token.Content)
+	claims, valid := token.ValidateAndExtract(tokenStr)
 	if !valid {
-		log.Print("invalid token: ", token.Content)
+		log.Print("invalid token: ", tokenStr)
 	}
 
 	log.Print("claims: ", claims)

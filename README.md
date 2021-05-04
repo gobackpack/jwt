@@ -2,23 +2,28 @@
 
 * **Generate jwt with claims**
 ```
-token := &jwt.Token{
+token := &jwtLib.Token{
     Secret: []byte("testkey"),
 }
 
-if err := token.Generate(&jwt.Claims{
-    Expiration: time.Hour * 24,
-    Fields: map[string]interface{}{
-        "username": "semir",
-        "email":    "semir@mail.com",
-        "id":       "semir-123",
-    },
-}); err != nil {
+tokenStr, err := token.Generate(map[string]interface{}{
+    "id":    "semir-123",
+    "email": "semir@mail.com",
+    "exp":   time.Second * 15,
+})
+if err != nil {
     log.Fatalln("failed to generate jwt: ", err)
 }
+
+log.Print(tokenStr)
 ```
 
 * **Validate and get jwt claims**
 ```
-claims, valid := token.ValidateAndExtract("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNlbWlyQG1haWwuY29tIiwiZXhwIjoxNTUyMTMzNDI3LCJpZCI6InNlbWlyLTEyMyIsInVzZXJuYW1lIjoic2VtaXIifQ.bASFJHnwo7G_FpHVldUDXxFeYuGTPJyRZi0N4KBNC2g")
+claims, valid := token.ValidateAndExtract(tokenStr)
+if !valid {
+    log.Print("invalid token: ", tokenStr)
+}
+
+log.Print("claims: ", claims)
 ```
