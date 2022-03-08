@@ -3,7 +3,7 @@
 ### JWT
 
 * **Generate jwt with claims**
-```
+```go
 token := &jwtLib.Token{
     Secret: []byte("testkey"),
 }
@@ -21,7 +21,7 @@ log.Print(tokenStr)
 ```
 
 * **Validate and get jwt claims**
-```
+```go
 claims, valid := token.ValidateAndExtract(tokenStr)
 if !valid {
     log.Print("invalid token: ", tokenStr)
