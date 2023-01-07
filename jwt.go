@@ -2,19 +2,17 @@ package jwt
 
 import (
 	"errors"
-	jwtLib "github.com/dgrijalva/jwt-go"
+	jwtLib "github.com/golang-jwt/jwt/v4"
 	"time"
 )
-
-var ErrMissingSecret = errors.New("missing secret key")
 
 type Token struct {
 	Secret []byte
 }
 
-func (token *Token) Generate(claims map[string]interface{}) (string, error) {
-	if token.Secret == nil || len(token.Secret) == 0 {
-		return "", ErrMissingSecret
+func (t *Token) Generate(claims map[string]interface{}) (string, error) {
+	if t.Secret == nil || len(t.Secret) == 0 {
+		return "", errors.New("missing secret key")
 	}
 
 	jwtClaims := jwtLib.MapClaims{}
@@ -24,57 +22,45 @@ func (token *Token) Generate(claims map[string]interface{}) (string, error) {
 
 	jwtToken := jwtLib.NewWithClaims(jwtLib.SigningMethodHS256, jwtClaims)
 
-	tokenStr, err := jwtToken.SignedString(token.Secret)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenStr, nil
+	return jwtToken.SignedString(t.Secret)
 }
 
-func (token *Token) ValidateAndExtract(tokenStr string) (map[string]interface{}, bool) {
-	jwtToken, err := token.parse(tokenStr)
+func (t *Token) ValidateAndExtract(token string) (map[string]interface{}, bool) {
+	jwtToken, err := t.parse(token)
 	if err != nil {
 		return nil, false
 	}
 
-	if jwtClaims, valid := token.valid(jwtToken); valid {
-		if claims, ok := jwtClaims.(jwtLib.MapClaims); ok {
-			claimsMap := map[string]interface{}{}
-
-			for k, v := range claims {
-				claimsMap[k] = v
-			}
-
-			return claimsMap, true
+	if jwtClaims, valid := t.valid(jwtToken); valid {
+		claims := map[string]interface{}{}
+		for k, v := range jwtClaims {
+			claims[k] = v
 		}
+
+		return claims, true
 	}
 
 	return nil, false
 }
 
 func TokenExpiry(duration time.Duration) int64 {
-	return time.Now().Add(duration).Unix()
+	return time.Now().UTC().Add(duration).Unix()
 }
 
-func (token *Token) parse(tokenStr string) (*jwtLib.Token, error) {
-	jwtToken, err := jwtLib.Parse(tokenStr, func(t *jwtLib.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwtLib.SigningMethodHMAC); !ok {
-			return nil, errors.New("failed to parse JWT token")
+func (t *Token) parse(tokenStr string) (*jwtLib.Token, error) {
+	jwtToken, err := jwtLib.Parse(tokenStr, func(libToken *jwtLib.Token) (interface{}, error) {
+		if _, ok := libToken.Method.(*jwtLib.SigningMethodHMAC); !ok {
+			return nil, errors.New("failed to parse JWT")
 		}
 
-		return token.Secret, nil
+		return t.Secret, nil
 	})
 
 	return jwtToken, err
 }
 
-func (token *Token) valid(jwtToken *jwtLib.Token) (jwtLib.Claims, bool) {
-	if jwtToken != nil {
-		claims, ok := jwtToken.Claims.(jwtLib.Claims)
+func (t *Token) valid(jwtToken *jwtLib.Token) (jwtLib.MapClaims, bool) {
+	jwtClaims, ok := jwtToken.Claims.(jwtLib.MapClaims)
 
-		return claims, ok && jwtToken.Valid
-	}
-
-	return nil, false
+	return jwtClaims, ok && jwtToken.Valid
 }
