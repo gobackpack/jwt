@@ -26,12 +26,12 @@ func (t *Token) Generate(claims map[string]interface{}) (string, error) {
 }
 
 func (t *Token) ValidateAndExtract(token string) (map[string]interface{}, bool) {
-	jwtToken, err := t.parse(token)
+	jwtToken, err := parseToken(t.Secret, token)
 	if err != nil {
 		return nil, false
 	}
 
-	if jwtClaims, valid := t.valid(jwtToken); valid {
+	if jwtClaims, valid := validToken(jwtToken); valid {
 		claims := map[string]interface{}{}
 		for k, v := range jwtClaims {
 			claims[k] = v
@@ -47,19 +47,19 @@ func TokenExpiry(duration time.Duration) int64 {
 	return time.Now().UTC().Add(duration).Unix()
 }
 
-func (t *Token) parse(tokenStr string) (*jwtLib.Token, error) {
+func parseToken(secret []byte, tokenStr string) (*jwtLib.Token, error) {
 	jwtToken, err := jwtLib.Parse(tokenStr, func(libToken *jwtLib.Token) (interface{}, error) {
 		if _, ok := libToken.Method.(*jwtLib.SigningMethodHMAC); !ok {
 			return nil, errors.New("failed to parse JWT")
 		}
 
-		return t.Secret, nil
+		return secret, nil
 	})
 
 	return jwtToken, err
 }
 
-func (t *Token) valid(jwtToken *jwtLib.Token) (jwtLib.MapClaims, bool) {
+func validToken(jwtToken *jwtLib.Token) (jwtLib.MapClaims, bool) {
 	jwtClaims, ok := jwtToken.Claims.(jwtLib.MapClaims)
 
 	return jwtClaims, ok && jwtToken.Valid
