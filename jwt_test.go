@@ -17,10 +17,10 @@ func TestToken_Generate(t *testing.T) {
 
 	tokenValue, err := token.Generate(map[string]interface{}{
 		"id":  "id-123",
-		"nbf": tNow.UTC().Add(time.Minute * 5).Unix(),
+		"exp": tNow.UTC().Add(time.Minute * 5).Unix(),
 	})
 
-	expected := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImlkLTEyMyIsIm5iZiI6MTY0MDk5OTEwMH0.hqd1XP7ZPwJ375Cv6gV1jLMjvNheZcWvUfPNt5qkfs8"
+	expected := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDA5OTkxMDAsImlkIjoiaWQtMTIzIn0._WI2plL_VWoq-ukd9QH_oZKYIAAnFbfeRzt8547zDZc"
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tokenValue)
@@ -70,6 +70,24 @@ func TestToken_ValidateAndExtract_ExpiredToken(t *testing.T) {
 		"exp": jwt.TokenExpiry(time.Minute * (-5)),
 	})
 	assert.NoError(t, err)
+
+	claims, valid := token.ValidateAndExtract(tokenValue)
+	assert.Empty(t, claims)
+	assert.False(t, valid)
+}
+
+func TestToken_ValidateAndExtract_InvalidSecret(t *testing.T) {
+	token := &jwt.Token{
+		Secret: []byte("testkey"),
+	}
+
+	tokenValue, err := token.Generate(map[string]interface{}{
+		"id":  "id-123",
+		"exp": jwt.TokenExpiry(time.Minute * 5),
+	})
+	assert.NoError(t, err)
+
+	token.Secret = []byte("changed-secret")
 
 	claims, valid := token.ValidateAndExtract(tokenValue)
 	assert.Empty(t, claims)
