@@ -1,7 +1,11 @@
 package jwt_test
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"github.com/gobackpack/jwt"
+	jwtLib "github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -90,6 +94,29 @@ func TestToken_Validate_InvalidSecret(t *testing.T) {
 	token.Secret = []byte("changed-secret")
 
 	claims, valid := token.Validate(tokenValue)
+	assert.Empty(t, claims)
+	assert.False(t, valid)
+}
+
+func TestToken_Validate_InvalidSigningMethod(t *testing.T) {
+	jwtClaims := jwtLib.MapClaims{}
+	for k, v := range map[string]interface{}{
+		"id":  "id-123",
+		"exp": jwt.TokenExpiry(time.Minute * 5),
+	} {
+		jwtClaims[k] = v
+	}
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	assert.NoError(t, err)
+
+	jwtToken := jwtLib.NewWithClaims(jwtLib.SigningMethodES256, jwtLib.MapClaims{})
+	signed, err := jwtToken.SignedString(key)
+	assert.NoError(t, err)
+
+	token := &jwt.Token{
+		Secret: []byte("testkey"),
+	}
+	claims, valid := token.Validate(signed)
 	assert.Empty(t, claims)
 	assert.False(t, valid)
 }
