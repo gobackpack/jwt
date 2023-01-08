@@ -40,7 +40,7 @@ func TestToken_Generate_MissingSecret(t *testing.T) {
 	assert.Empty(t, tokenValue)
 }
 
-func TestToken_ValidateAndExtract(t *testing.T) {
+func TestToken_Validate(t *testing.T) {
 	token := &jwt.Token{
 		Secret: []byte("testkey"),
 	}
@@ -60,7 +60,7 @@ func TestToken_ValidateAndExtract(t *testing.T) {
 	assert.Equal(t, "id-123", id)
 }
 
-func TestToken_ValidateAndExtract_ExpiredToken(t *testing.T) {
+func TestToken_Validate_ExpiredToken(t *testing.T) {
 	token := &jwt.Token{
 		Secret: []byte("testkey"),
 	}
@@ -76,7 +76,7 @@ func TestToken_ValidateAndExtract_ExpiredToken(t *testing.T) {
 	assert.False(t, valid)
 }
 
-func TestToken_ValidateAndExtract_InvalidSecret(t *testing.T) {
+func TestToken_Validate_InvalidSecret(t *testing.T) {
 	token := &jwt.Token{
 		Secret: []byte("testkey"),
 	}
