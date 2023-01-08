@@ -51,7 +51,7 @@ func TestToken_ValidateAndExtract(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	claims, valid := token.ValidateAndExtract(tokenValue)
+	claims, valid := token.Validate(tokenValue)
 	assert.NotEmpty(t, claims)
 	assert.True(t, valid)
 
@@ -71,7 +71,7 @@ func TestToken_ValidateAndExtract_ExpiredToken(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	claims, valid := token.ValidateAndExtract(tokenValue)
+	claims, valid := token.Validate(tokenValue)
 	assert.Empty(t, claims)
 	assert.False(t, valid)
 }
@@ -89,7 +89,7 @@ func TestToken_ValidateAndExtract_InvalidSecret(t *testing.T) {
 
 	token.Secret = []byte("changed-secret")
 
-	claims, valid := token.ValidateAndExtract(tokenValue)
+	claims, valid := token.Validate(tokenValue)
 	assert.Empty(t, claims)
 	assert.False(t, valid)
 }

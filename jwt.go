@@ -10,6 +10,7 @@ type Token struct {
 	Secret []byte
 }
 
+// Generate jwt from given claims
 func (t *Token) Generate(claims map[string]interface{}) (string, error) {
 	if t.Secret == nil || len(t.Secret) == 0 {
 		return "", errors.New("missing secret key")
@@ -25,7 +26,8 @@ func (t *Token) Generate(claims map[string]interface{}) (string, error) {
 	return jwtToken.SignedString(t.Secret)
 }
 
-func (t *Token) ValidateAndExtract(token string) (map[string]interface{}, bool) {
+// Validate token (signing method, expiry...) and return claims.
+func (t *Token) Validate(token string) (map[string]interface{}, bool) {
 	jwtToken, err := parseToken(t.Secret, token)
 	if err != nil {
 		return nil, false
