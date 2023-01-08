@@ -55,9 +55,9 @@ func TestToken_Validate(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	claims, valid := token.Validate(tokenValue)
+	claims, err := token.Validate(tokenValue)
+	assert.NoError(t, err)
 	assert.NotEmpty(t, claims)
-	assert.True(t, valid)
 
 	id, ok := claims["id"]
 	assert.True(t, ok)
@@ -75,9 +75,9 @@ func TestToken_Validate_ExpiredToken(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	claims, valid := token.Validate(tokenValue)
+	claims, err := token.Validate(tokenValue)
+	assert.Error(t, err)
 	assert.Empty(t, claims)
-	assert.False(t, valid)
 }
 
 func TestToken_Validate_InvalidSecret(t *testing.T) {
@@ -93,9 +93,9 @@ func TestToken_Validate_InvalidSecret(t *testing.T) {
 
 	token.Secret = []byte("changed-secret")
 
-	claims, valid := token.Validate(tokenValue)
+	claims, err := token.Validate(tokenValue)
+	assert.Error(t, err)
 	assert.Empty(t, claims)
-	assert.False(t, valid)
 }
 
 func TestToken_Validate_InvalidSigningMethod(t *testing.T) {
@@ -116,7 +116,7 @@ func TestToken_Validate_InvalidSigningMethod(t *testing.T) {
 	token := &jwt.Token{
 		Secret: []byte("testkey"),
 	}
-	claims, valid := token.Validate(signed)
+	claims, err := token.Validate(signed)
+	assert.Error(t, err)
 	assert.Empty(t, claims)
-	assert.False(t, valid)
 }

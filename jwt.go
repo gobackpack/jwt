@@ -27,22 +27,18 @@ func (t *Token) Generate(claims map[string]interface{}) (string, error) {
 }
 
 // Validate token (signing method, expiry...) and return claims.
-func (t *Token) Validate(token string) (map[string]interface{}, bool) {
+func (t *Token) Validate(token string) (map[string]interface{}, error) {
 	jwtToken, err := parseToken(t.Secret, token)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
-	if jwtClaims, valid := validToken(jwtToken); valid {
-		claims := map[string]interface{}{}
-		for k, v := range jwtClaims {
-			claims[k] = v
-		}
-
-		return claims, true
+	claims, err := parseClaims(jwtToken)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, false
+	return claims, nil
 }
 
 func TokenExpiry(duration time.Duration) int64 {
@@ -61,8 +57,16 @@ func parseToken(secret []byte, tokenStr string) (*jwtLib.Token, error) {
 	return jwtToken, err
 }
 
-func validToken(jwtToken *jwtLib.Token) (jwtLib.MapClaims, bool) {
+func parseClaims(jwtToken *jwtLib.Token) (map[string]interface{}, error) {
 	jwtClaims, ok := jwtToken.Claims.(jwtLib.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims")
+	}
 
-	return jwtClaims, ok && jwtToken.Valid
+	claims := map[string]interface{}{}
+	for k, v := range jwtClaims {
+		claims[k] = v
+	}
+
+	return claims, nil
 }
